@@ -1,0 +1,1 @@
+nvidia-docker run -it -e NVIDIA_VISIBLE_DEVICES=0,1,2,3 -v /home/rizawa/Codes/recruitement/assignment:/home/rizawa/Codes/recruitement/assignment --name homework nvcr.io/nvidia/pytorch:19.09-py3 
