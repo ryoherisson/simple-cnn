@@ -19,6 +19,9 @@ class Updater(object):
         for epoch in range(n_epochs):
             self.network.train()
 
+            n_correct = 0
+            n_total = 0
+
             with tqdm(self.train_loader, ncols=100) as pbar:
                 for idx, (inputs, targets) in enumerate(pbar):
                     inputs = inputs.to(self.device)
@@ -33,9 +36,16 @@ class Updater(object):
                     self.optimizer.step()
                     self.optimizer.zero_grad()
 
+                    _, pred = torch.max(outputs.data, 1)
+                    n_total += targets.size(0)
+                    n_correct += (pred == targets).sum().item()
+
                     pbar.set_postfix(OrderedDict(
                         epoch="{:>10}".format(epoch),
-                        loss="{:.4f}".format(loss.item())))
+                        loss="{:.4f}".format(loss.item()),
+                        acc="{:.4f}".format(100.0 * n_correct / n_total)))
+
+            print(f'Accuracy: {100.0 * n_correct / n_total}')
 
             
             self.test(epoch)
