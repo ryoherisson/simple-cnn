@@ -27,10 +27,12 @@ def parser():
 def main():
     args = parser()
 
+    ### setup configs ###
     configfile = args.configfile
 
     with open(configfile) as f:
         configs = yaml.load(f)
+
 
     ### setup logs and summary writer ###
     now = datetime.now().isoformat()
@@ -41,6 +43,7 @@ def main():
     summary_dir.mkdir(exist_ok=True)
     writer = SummaryWriter(str(summary_dir))
 
+
     ### setup GPU or CPU ###
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
         print('CUDA is available! using GPU...')
@@ -48,6 +51,7 @@ def main():
     else:
         print('using CPU...')
         device = torch.device('cpu')
+
 
     ### Dataset ###
     print('preparing dataset...')
@@ -71,6 +75,7 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=configs['batch_size'], shuffle=True, num_workers=8)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
+
 
     ### Network ###
     print('preparing network...')
@@ -102,8 +107,10 @@ def main():
     if configs["n_gpus"] > 1:
         network = nn.DataParallel(network)
 
+
     ### Metrics ###
     metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, log_dir=log_dir)
+
 
     ### Train or Test ###
     kwargs = {
