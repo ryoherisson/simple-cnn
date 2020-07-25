@@ -1,5 +1,7 @@
 import argparse
+from pathlib import Path
 import yaml
+from  datetime import datetime
 
 import torch
 import torch.nn as nn
@@ -26,6 +28,11 @@ def main():
 
     with open(configfile) as f:
         configs = yaml.load(f)
+
+    # setup summary writer
+    now = datetime.now().isoformat()
+    log_dir = Path(configs['log_dir']) / now
+    log_dir.mkdir(exist_ok=True, parents=True)
 
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
         print('CUDA is available! using GPU...')
@@ -58,21 +65,24 @@ def main():
     print('model summary: ')
     summary(network, input_size=(configs['n_channels'], configs['img_size'], configs['img_size']))
 
-    # if configs["n_gpus"] > 1:
-    #     network = nn.DataParallel(network)
+    if configs["n_gpus"] > 1:
+        network = nn.DataParallel(network)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(network.parameters(), lr=configs['lr'])
 
-    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'])
+    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], log_dir=log_dir)
 
     kwargs = {
-        "device": device,
-        "network": network,
-        "optimizer": optimizer,
-        "criterion": criterion,
-        "data_loaders": (train_loader, test_loader),
-        "metrics": metrics,
+        'device': device,
+        'network': network,
+        'optimizer': optimizer,
+        'criterion': criterion,
+        'data_loaders': (train_loader, test_loader),
+        'metrics': metrics,
+        'n_classses': configs['n_classes'],
+        'save_ckpt_interval': configs['save_ckpt_interval'],
+        'log_dir': log_dir,
     }
 
     updater = Updater(**kwargs)

@@ -3,6 +3,7 @@ from tqdm import tqdm
 from collections import OrderedDict
 
 import torch
+import torch.nn as nn
 
 
 class Updater(object):
@@ -13,8 +14,15 @@ class Updater(object):
         self.criterion = kwargs['criterion']
         self.train_loader, self.test_loader = kwargs['data_loaders']
         self.metrics = kwargs['metrics']
+        self.save_ckpt_interval = kwargs['save_ckpt_interval']
+        self.log_dir = kwargs['log_dir']
+        
+        self.ckpt_dir = self.log_dir / 'ckpt'
+        self.ckpt_dir.mkdir(exist_ok=True)
 
     def train(self, n_epochs):
+
+        best_accuracy = 0
 
         for epoch in range(n_epochs):
             self.network.train()
@@ -58,12 +66,18 @@ class Updater(object):
                         loss="{:.4f}".format(train_loss / (idx+1)),
                         acc="{:.4f}".format(accuracy)))
 
-            print(f'train loss: {train_loss}')
+            print(f'train loss: {train_loss / (idx+1)}')
             print(f'train accuracy: {accuracy}')
 
             self.metrics.calc_metrics(epoch, mode='train')
 
-            self.test(epoch)
+            if epoch % self.save_ckpt_interval == 0:
+                self._save_ckpt(epoch, train_loss/(idx+1))
+
+            test_accuracy = self.test(epoch)
+            if test_accuracy > best_accuracy:
+                best_accuracy = test_accuracy
+                self._save_ckpt(epoch, train_loss/(idx+1), mode='best')
 
     def test(self, epoch):
         self.network.eval()
@@ -103,6 +117,22 @@ class Updater(object):
             print(f'test loss: {test_loss}')
             print(f'test accuracy: {accuracy}\n')
 
+        return accuracy
 
-    def _save_ckpt(self):
-        pass
+    def _save_ckpt(self, epoch, loss, mode=None, zfill=4):
+        if isinstance(self.network, nn.DataParallel):
+            network = self.network.module
+        else:
+            network = self.network
+
+        if mode == 'best':
+            ckpt_path = self.ckpt_dir / 'best_acc_ckpt.pth'
+        else:
+            ckpt_path = self.ckpt_dir / f'epoch{str(epoch).zfill(zfill)}_ckpt.pth'
+
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': network.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': loss,
+        }, ckpt_path)
