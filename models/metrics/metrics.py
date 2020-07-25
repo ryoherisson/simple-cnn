@@ -17,7 +17,7 @@ class Metrics(object):
         self.log_dir = log_dir
 
         self.metrics_dir = Path(self.log_dir) / 'metrics'
-        self.metrics_dir.mkdir(exist_ok=True, parents=True)
+        self.metrics_dir.mkdir(exist_ok=True)
 
 
     def update(self, preds, targets, loss, accuracy):

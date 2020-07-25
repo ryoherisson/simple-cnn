@@ -14,3 +14,5 @@ decay: 1e-4
 log_dir: ./logs/
 n_gpus: 1
 
+# save_ckpt_interval should not be 0.
+save_ckpt_interval: 50
