@@ -65,8 +65,27 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
 
     print('preparing network...')
+
     network = CNNClassifier(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
+
     network = network.to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(network.parameters(), lr=configs['lr'])
+
+    if configs['resume']:
+        # Load checkpoint
+        print('==> Resuming from checkpoint...')
+        if not Path(configs['resume']).exists():
+            assert 'No checkpoint found !'
+
+        ckpt = torch.load(configs['resume'])
+        network.load_state_dict(ckpt['model_state_dict'])
+        optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+        start_epoch = ckpt['epoch']
+        loss = ckpt['loss']
+    else:
+        print('==> Building model...')
+        start_epoch = 0
 
     print('model summary: ')
     summary(network, input_size=(configs['n_channels'], configs['img_size'], configs['img_size']))
@@ -74,8 +93,6 @@ def main():
     if configs["n_gpus"] > 1:
         network = nn.DataParallel(network)
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(network.parameters(), lr=configs['lr'])
 
     metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, log_dir=log_dir)
 
@@ -98,7 +115,7 @@ def main():
         updater.test()
     else:
         print('mode: train\n')
-        updater.train(n_epochs=configs['n_epochs'])
+        updater.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
 
 if __name__ == "__main__":
     main()
