@@ -10,6 +10,7 @@ import torchvision.datasets as datasets
 from torchsummary import summary
 
 from models.updater import Updater
+from models.metrics.metrics import Metrics
 from models.networks.cnn_classifier import CNNClassifier
 
 def parser():
@@ -17,8 +18,6 @@ def parser():
     parser.add_argument('--configfile', type=str, default='./configs/default.yml')
     args = parser.parse_args()
     return args
-
-
 
 def main():
     args = parser()
@@ -65,22 +64,24 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(network.parameters(), lr=configs['lr'])
 
+    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'])
+
     kwargs = {
         "device": device,
         "network": network,
         "optimizer": optimizer,
         "criterion": criterion,
         "data_loaders": (train_loader, test_loader),
-        "n_classes": configs['n_classes'],
+        "metrics": metrics,
     }
 
     updater = Updater(**kwargs)
 
     if configs['test']:
-        print('mode: test')
+        print('mode: test\n')
         updater.test()
     else:
-        print('mode: train')
+        print('mode: train\n')
         updater.train(n_epochs=configs['n_epochs'])
 
 if __name__ == "__main__":

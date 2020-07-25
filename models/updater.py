@@ -12,7 +12,7 @@ class Updater(object):
         self.optimizer = kwargs['optimizer']
         self.criterion = kwargs['criterion']
         self.train_loader, self.test_loader = kwargs['data_loaders']
-        self.n_classes = kwargs['n_classes']
+        self.metrics = kwargs['metrics']
 
     def train(self, n_epochs):
 
@@ -43,13 +43,25 @@ class Updater(object):
                     n_total += targets.size(0)
                     n_correct += (pred == targets).sum().item()
 
+                    accuracy = 100.0 * n_correct / n_total
+
+                    self.metrics.update(
+                        preds=pred.cpu().detach().clone(),
+                        targets=targets.cpu().detach().clone(),
+                        loss=train_loss / (idx+1),
+                        accuracy=accuracy,
+                    )
+
+                    ### logging train loss and accuracy
                     pbar.set_postfix(OrderedDict(
                         epoch="{:>10}".format(epoch),
-                        loss="{:.4f}".format(train_loss),
-                        acc="{:.4f}".format(100.0 * n_correct / n_total)))
+                        loss="{:.4f}".format(train_loss / (idx+1)),
+                        acc="{:.4f}".format(accuracy)))
 
             print(f'train loss: {train_loss}')
-            print(f'train accuracy: {100.0 * n_correct / n_total}')
+            print(f'train accuracy: {accuracy}')
+
+            self.metrics.calc_metrics(epoch, mode='train')
 
             self.test(epoch)
 
@@ -59,6 +71,7 @@ class Updater(object):
         test_loss = 0
         n_correct = 0
         n_total = 0
+        preds_t = torch.tensor([])
 
         with torch.no_grad():
             with tqdm(self.test_loader, ncols=100) as pbar:
@@ -79,13 +92,16 @@ class Updater(object):
                         n_total += targets.size(0)
                         n_correct += (pred == targets).sum().item()
 
+                        accuracy = 100.0 * n_correct / n_total
+
+                        ### logging test loss and accuracy
                         pbar.set_postfix(OrderedDict(
                             epoch="{:>10}".format(epoch),
                             loss="{:.4f}".format(test_loss),
-                            acc="{:.4f}".format(100.0 * n_correct / n_total)))
+                            acc="{:.4f}".format(accuracy)))
 
             print(f'test loss: {test_loss}')
-            print(f'test accuracy: {100.0 * n_correct / n_total}\n')
+            print(f'test accuracy: {accuracy}\n')
 
 
     def _save_ckpt(self):
