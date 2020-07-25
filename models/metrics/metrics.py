@@ -7,14 +7,14 @@ import pandas as pd
 import torch
 
 class Metrics(object):
-    def __init__(self, n_classes, classes, epsilon=1e-12, log_dir='./logs'):
+    def __init__(self, n_classes, classes, writer, epsilon=1e-12, log_dir='./logs'):
         self.n_classes = n_classes
         self.classes = classes
         self._init_cmx()
         self.epsilon = epsilon
         self.loss = 0
-
         self.log_dir = log_dir
+        self.writer = writer
 
         self.metrics_dir = Path(self.log_dir) / 'metrics'
         self.metrics_dir.mkdir(exist_ok=True)
@@ -37,9 +37,9 @@ class Metrics(object):
 
         self.precision = tp / (tp + fp + self.epsilon)
         self.recall = tp / (tp + fn + self.epsilon)
-        self.f1score = tp / (tp + 0.5 * (fp + fn))
+        self.f1score = tp / (tp + 0.5 * (fp + fn)) # micro f1score
 
-        self.logging()
+        self.logging(epoch, mode)
         self.save_csv(epoch, mode)
         self._init_cmx()
 
@@ -48,7 +48,7 @@ class Metrics(object):
         """
         self.__cmx = torch.zeros(self.n_classes, self.n_classes, dtype=torch.int64)
 
-    def logging(self):
+    def logging(self, epoch, mode):
 
         df = pd.DataFrame(index=self.classes)
         df['precision'] = self.precision.tolist()
@@ -59,7 +59,16 @@ class Metrics(object):
 
         print(f'precision: {self.precision.mean()}')
         print(f'recall: {self.recall.mean()}')
-        print(f'micro f1score: {self.f1score.mean()}\n')
+        print(f'mean f1score: {self.f1score.mean()}\n') # micro mean f1score
+
+        # Change mode from 'test' to 'val' to change the display order from left to right to train and test.
+        mode = 'val' if mode == 'test' else mode
+
+        self.writer.add_scalar(f'loss/{mode}', self.loss, epoch)
+        self.writer.add_scalar(f'accuracy/{mode}', self.accuracy, epoch)
+        self.writer.add_scalar(f'mean f1score/{mode}', self.f1score.mean(), epoch)
+        self.writer.add_scalar(f'precision/{mode}', self.precision.mean(), epoch)
+        self.writer.add_scalar(f'recall/{mode}', self.recall.mean(), epoch)
 
     def save_csv(self, epoch, mode):
 

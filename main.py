@@ -9,6 +9,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
+from tensorboardX import SummaryWriter
 from torchsummary import summary
 
 from models.updater import Updater
@@ -29,10 +30,14 @@ def main():
     with open(configfile) as f:
         configs = yaml.load(f)
 
-    # setup summary writer
+    ### setup logs and summary writer
     now = datetime.now().isoformat()
     log_dir = Path(configs['log_dir']) / now
     log_dir.mkdir(exist_ok=True, parents=True)
+
+    summary_dir = log_dir / 'tensorboard'
+    summary_dir.mkdir(exist_ok=True)
+    writer = SummaryWriter(str(summary_dir))
 
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
         print('CUDA is available! using GPU...')
@@ -59,6 +64,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=configs['batch_size'], shuffle=True, num_workers=8)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
 
+    print('preparing network...')
     network = CNNClassifier(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
     network = network.to(device)
 
@@ -71,7 +77,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(network.parameters(), lr=configs['lr'])
 
-    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], log_dir=log_dir)
+    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, log_dir=log_dir)
 
     kwargs = {
         'device': device,

@@ -58,17 +58,17 @@ class Updater(object):
                     self.metrics.update(
                         preds=pred.cpu().detach().clone(),
                         targets=targets.cpu().detach().clone(),
-                        loss=train_loss / (idx+1),
+                        loss=train_loss / n_total,
                         accuracy=accuracy,
                     )
 
                     ### logging train loss and accuracy
                     pbar.set_postfix(OrderedDict(
                         epoch="{:>10}".format(epoch),
-                        loss="{:.4f}".format(train_loss / (idx+1)),
+                        loss="{:.4f}".format(train_loss / n_total),
                         acc="{:.4f}".format(accuracy)))
 
-            print(f'train loss: {train_loss / (idx+1)}')
+            print(f'train loss: {train_loss / n_total}')
             print(f'train accuracy: {accuracy}')
 
             self.metrics.calc_metrics(epoch, mode='train')
@@ -116,17 +116,17 @@ class Updater(object):
                         self.metrics.update(
                             preds=pred.cpu().detach().clone(),
                             targets=targets.cpu().detach().clone(),
-                            loss=test_loss / (idx+1),
+                            loss=test_loss / n_total,
                             accuracy=accuracy,
                         )
 
                         ### logging test loss and accuracy
                         pbar.set_postfix(OrderedDict(
                             epoch="{:>10}".format(epoch),
-                            loss="{:.4f}".format(test_loss / (idx+1)),
+                            loss="{:.4f}".format(test_loss / n_total),
                             acc="{:.4f}".format(accuracy)))
 
-            print(f'test loss: {test_loss / (idx+1)}')
+            print(f'test loss: {test_loss / n_total}')
             print(f'test accuracy: {accuracy}\n')
 
             self.metrics.calc_metrics(epoch, mode='test')
