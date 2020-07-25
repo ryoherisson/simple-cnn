@@ -1,8 +1,9 @@
 ### dataset
-# dataset: cifar10
-dataset: 'custom' # => custom dataset
-# data_root: /home/rizawa/Codes/recruitement/assignment/data
-data_root: /home/rizawa/Codes/recruitement/assignment/dataset
+dataset: cifar10
+data_root: /home/rizawa/Codes/recruitement/assignment/data
+# => custom dataset
+# dataset: 'custom'
+# data_root: /home/rizawa/Codes/recruitement/assignment/dataset
 n_classes: 10
 classes: ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 n_channels: 3

@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 
-class Updater(object):
+class CNNClassifier(object):
     def __init__(self, **kwargs):
         self.device = kwargs['device']
         self.network = kwargs['network']
