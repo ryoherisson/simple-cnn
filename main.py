@@ -12,6 +12,8 @@ import torchvision.datasets as datasets
 from tensorboardX import SummaryWriter
 from torchsummary import summary
 
+from utils.dataset import make_datapath_list
+from utils.dataset import DataTransforms, Dataset
 from models.updater import Updater
 from models.metrics.metrics import Metrics
 from models.networks.cnn_classifier import CNNClassifier
@@ -30,7 +32,7 @@ def main():
     with open(configfile) as f:
         configs = yaml.load(f)
 
-    ### setup logs and summary writer
+    ### setup logs and summary writer ###
     now = datetime.now().isoformat()
     log_dir = Path(configs['log_dir']) / now
     log_dir.mkdir(exist_ok=True, parents=True)
@@ -39,6 +41,7 @@ def main():
     summary_dir.mkdir(exist_ok=True)
     writer = SummaryWriter(str(summary_dir))
 
+    ### setup GPU or CPU ###
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
         print('CUDA is available! using GPU...')
         device = torch.device('cuda')
@@ -46,24 +49,30 @@ def main():
         print('using CPU...')
         device = torch.device('cpu')
 
+    ### Dataset ###
     print('preparing dataset...')
 
-    transform = transforms.Compose([
-        transforms.Resize(configs['img_size'], configs['img_size']),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-
     if configs['dataset'] == 'cifar10':
+        transform = transforms.Compose([
+            transforms.Resize(configs['img_size'], configs['img_size']),
+            transforms.ToTensor(),
+            transforms.Normalize(configs['color_mean'], configs['color_std']),
+        ])
         train_dataset = datasets.CIFAR10(root=configs['data_root'], train=True, transform=transform, download=True)
         test_dataset = datasets.CIFAR10(root=configs['data_root'], train=False, transform=transform, download=True)
+    elif configs['dataset'] == 'custom':
+        train_transform = DataTransforms(img_size=configs['img_size'], color_mean=configs['color_mean'], color_std=configs['color_std'], phase='train')
+        test_transform = DataTransforms(img_size=configs['img_size'], color_mean=configs['color_mean'], color_std=configs['color_std'], phase='test')
+        train_img_list, train_lbl_list, test_img_list, test_lbl_list = make_datapath_list(root=configs['data_root'])
+        train_dataset = Dataset(train_img_list, train_lbl_list, transform=train_transform)
+        test_dataset = Dataset(test_img_list, test_lbl_list, transform=test_transform)
     else:
         raise ValueError('That dataset is not supported')
-
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=configs['batch_size'], shuffle=True, num_workers=8)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
 
+    ### Network ###
     print('preparing network...')
 
     network = CNNClassifier(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
@@ -93,9 +102,10 @@ def main():
     if configs["n_gpus"] > 1:
         network = nn.DataParallel(network)
 
-
+    ### Metrics ###
     metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, log_dir=log_dir)
 
+    ### Train or Test ###
     kwargs = {
         'device': device,
         'network': network,

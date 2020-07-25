@@ -37,7 +37,7 @@ class Metrics(object):
 
         self.precision = tp / (tp + fp + self.epsilon)
         self.recall = tp / (tp + fn + self.epsilon)
-        self.f1score = tp / (tp + 0.5 * (fp + fn)) # micro f1score
+        self.f1score = tp / (tp + 0.5 * (fp + fn) + self.epsilon) # micro f1score
 
         self.logging(epoch, mode)
         self.save_csv(epoch, mode)
