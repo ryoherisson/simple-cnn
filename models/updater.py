@@ -19,6 +19,7 @@ class Updater(object):
         for epoch in range(n_epochs):
             self.network.train()
 
+            train_loss = 0
             n_correct = 0
             n_total = 0
 
@@ -36,24 +37,28 @@ class Updater(object):
                     self.optimizer.step()
                     self.optimizer.zero_grad()
 
-                    _, pred = torch.max(outputs.data, 1)
+                    train_loss += loss.item()
+
+                    pred = outputs.argmax(axis=1)
                     n_total += targets.size(0)
                     n_correct += (pred == targets).sum().item()
 
                     pbar.set_postfix(OrderedDict(
                         epoch="{:>10}".format(epoch),
-                        loss="{:.4f}".format(loss.item()),
+                        loss="{:.4f}".format(train_loss),
                         acc="{:.4f}".format(100.0 * n_correct / n_total)))
 
-            print(f'Accuracy: {100.0 * n_correct / n_total}')
+            print(f'train loss: {train_loss}')
+            print(f'train accuracy: {100.0 * n_correct / n_total}')
 
-            
             self.test(epoch)
 
     def test(self, epoch):
         self.network.eval()
     
         test_loss = 0
+        n_correct = 0
+        n_total = 0
 
         with torch.no_grad():
             with tqdm(self.test_loader, ncols=100) as pbar:
@@ -70,8 +75,17 @@ class Updater(object):
 
                         test_loss += loss.item()
 
-            print(f'test_loss: {test_loss}')
+                        pred = outputs.argmax(axis=1)
+                        n_total += targets.size(0)
+                        n_correct += (pred == targets).sum().item()
 
+                        pbar.set_postfix(OrderedDict(
+                            epoch="{:>10}".format(epoch),
+                            loss="{:.4f}".format(test_loss),
+                            acc="{:.4f}".format(100.0 * n_correct / n_total)))
+
+            print(f'test loss: {test_loss}')
+            print(f'test accuracy: {100.0 * n_correct / n_total}\n')
 
 
     def _save_ckpt(self):
