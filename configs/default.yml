@@ -14,7 +14,9 @@ log_dir: ./logs/
 n_gpus: 1
 
 # path of checkpoint or None
-resume: /home/rizawa/Codes/recruitement/assignment/SimpleCNN/logs/2020-07-25T10:33:40.719201/ckpt/best_acc_ckpt.pth
+# resume: /home/rizawa/Codes/recruitement/assignment/SimpleCNN/logs/2020-07-25T10:33:40.719201/ckpt/best_acc_ckpt.pth
+
+resume: 
 
 # save_ckpt_interval should not be 0.
 save_ckpt_interval: 50
