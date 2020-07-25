@@ -59,7 +59,7 @@ class Metrics(object):
 
         print(f'precision: {self.precision.mean()}')
         print(f'recall: {self.recall.mean()}')
-        print(f'micro f1score: {self.f1score.mean()}')
+        print(f'micro f1score: {self.f1score.mean()}\n')
 
     def save_csv(self, epoch, mode):
 

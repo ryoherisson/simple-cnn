@@ -25,6 +25,8 @@ class Updater(object):
         best_accuracy = 0
 
         for epoch in range(n_epochs):
+            print(f'----------- Epoch: {epoch} -----------')
+            print('# train:')
             self.network.train()
 
             train_loss = 0
@@ -74,7 +76,10 @@ class Updater(object):
             if epoch % self.save_ckpt_interval == 0:
                 self._save_ckpt(epoch, train_loss/(idx+1))
 
+            ### test
+            print('# test:')
             test_accuracy = self.test(epoch)
+
             if test_accuracy > best_accuracy:
                 best_accuracy = test_accuracy
                 self._save_ckpt(epoch, train_loss/(idx+1), mode='best')
@@ -108,14 +113,23 @@ class Updater(object):
 
                         accuracy = 100.0 * n_correct / n_total
 
+                        self.metrics.update(
+                            preds=pred.cpu().detach().clone(),
+                            targets=targets.cpu().detach().clone(),
+                            loss=test_loss / (idx+1),
+                            accuracy=accuracy,
+                        )
+
                         ### logging test loss and accuracy
                         pbar.set_postfix(OrderedDict(
                             epoch="{:>10}".format(epoch),
-                            loss="{:.4f}".format(test_loss),
+                            loss="{:.4f}".format(test_loss / (idx+1)),
                             acc="{:.4f}".format(accuracy)))
 
-            print(f'test loss: {test_loss}')
+            print(f'test loss: {test_loss / (idx+1)}')
             print(f'test accuracy: {accuracy}\n')
+
+            self.metrics.calc_metrics(epoch, mode='test')
 
         return accuracy
 
