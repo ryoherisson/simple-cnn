@@ -7,18 +7,17 @@ import pandas as pd
 import torch
 
 class Metrics(object):
-    def __init__(self, n_classes, classes, writer, epsilon=1e-12, log_dir='./logs'):
+    def __init__(self, n_classes, classes, writer, metrics_dir, plot_confusion_matrix, epsilon=1e-12):
         self.n_classes = n_classes
         self.classes = classes
-        self._init_cmx()
+        self.init_cmx()
         self.epsilon = epsilon
         self.loss = 0
-        self.log_dir = log_dir
         self.writer = writer
+        self.metrics_dir = metrics_dir
 
-        self.metrics_dir = Path(self.log_dir) / 'metrics'
-        self.metrics_dir.mkdir(exist_ok=True)
-
+        # function
+        self.plot_confusion_matrix = plot_confusion_matrix
 
     def update(self, preds, targets, loss, accuracy):
         stacked = torch.stack((targets, preds), dim=1)
@@ -41,9 +40,11 @@ class Metrics(object):
 
         self.logging(epoch, mode)
         self.save_csv(epoch, mode)
-        self._init_cmx()
 
-    def _init_cmx(self):
+        if mode == 'test':
+            self.plot_confusion_matrix(self.__cmx.clone().numpy(), self.classes, self.metrics_dir)
+
+    def init_cmx(self):
         """Initialize Confusion Matrix tensor with shape (n_classes, n_classes)
         """
         self.__cmx = torch.zeros(self.n_classes, self.n_classes, dtype=torch.int64)

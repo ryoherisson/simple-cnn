@@ -15,10 +15,7 @@ class CNNClassifier(object):
         self.train_loader, self.test_loader = kwargs['data_loaders']
         self.metrics = kwargs['metrics']
         self.save_ckpt_interval = kwargs['save_ckpt_interval']
-        self.log_dir = kwargs['log_dir']
-        
-        self.ckpt_dir = self.log_dir / 'ckpt'
-        self.ckpt_dir.mkdir(exist_ok=True)
+        self.ckpt_dir = kwargs['ckpt_dir']
 
     def train(self, n_epochs, start_epoch=0):
 
@@ -72,6 +69,7 @@ class CNNClassifier(object):
             print(f'train accuracy: {accuracy}')
 
             self.metrics.calc_metrics(epoch, mode='train')
+            self.metrics.init_cmx()
 
             if epoch % self.save_ckpt_interval == 0:
                 self._save_ckpt(epoch, train_loss/(idx+1))
@@ -130,6 +128,7 @@ class CNNClassifier(object):
             print(f'test accuracy: {accuracy}\n')
 
             self.metrics.calc_metrics(epoch, mode='test')
+            self.metrics.init_cmx()
 
         return accuracy
 
