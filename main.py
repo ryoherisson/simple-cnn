@@ -14,9 +14,9 @@ from torchsummary import summary
 
 from utils.dataset import make_datapath_list
 from utils.dataset import DataTransforms, Dataset
-from models.updater import Updater
+from models.cnn_classifier import CNNClassifier
 from models.metrics.metrics import Metrics
-from models.networks.cnn_classifier import CNNClassifier
+from models.networks.network import SimpleCNN
 
 def parser():
     parser = argparse.ArgumentParser()
@@ -80,7 +80,7 @@ def main():
     ### Network ###
     print('preparing network...')
 
-    network = CNNClassifier(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
+    network = SimpleCNN(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
 
     network = network.to(device)
     criterion = nn.CrossEntropyLoss()
@@ -125,14 +125,14 @@ def main():
         'log_dir': log_dir,
     }
 
-    updater = Updater(**kwargs)
+    cnn_classifier = CNNClassifier(**kwargs)
 
     if configs['test']:
         print('mode: test\n')
-        updater.test()
+        cnn_classifier.test()
     else:
         print('mode: train\n')
-        updater.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
+        cnn_classifier.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
 
 if __name__ == "__main__":
     main()

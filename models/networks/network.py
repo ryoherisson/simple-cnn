@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class CNNClassifier(nn.Module):
+class SimpleCNN(nn.Module):
     def __init__(self, in_channels=3, n_classes=10):
-        super(CNNClassifier, self).__init__()
+        super(SimpleCNN, self).__init__()
 
         channels = 16
 
