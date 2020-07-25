@@ -1,10 +1,16 @@
-dataset: cifar10
+### dataset
+# dataset: cifar10
+dataset: 'custom' # => custom dataset
+# data_root: /home/rizawa/Codes/recruitement/assignment/data
+data_root: /home/rizawa/Codes/recruitement/assignment/dataset
 n_classes: 10
 classes: ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 n_channels: 3
 img_size: 32
-data_root: /home/rizawa/Codes/recruitement/assignment/data
-test: False
+color_mean: [0.4914, 0.4822, 0.4465]
+color_std: [0.2023, 0.1994, 0.2010]
+
+### train parameters
 lr: 0.0001
 seed: 2
 batch_size: 64
@@ -14,9 +20,12 @@ log_dir: ./logs/
 n_gpus: 1
 
 # path of checkpoint or None
-# resume: /home/rizawa/Codes/recruitement/assignment/SimpleCNN/logs/2020-07-25T10:33:40.719201/ckpt/best_acc_ckpt.pth
-
 resume: 
+# resume: /home/rizawa/Codes/recruitement/assignment/SimpleCNN/logs/2020-07-25T10:33:40.719201/ckpt/best_acc_ckpt.pth
 
 # save_ckpt_interval should not be 0.
 save_ckpt_interval: 50
+
+
+### general (train mode or test mode)
+test: False
