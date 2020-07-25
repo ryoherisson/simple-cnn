@@ -1,5 +1,6 @@
 dataset: cifar10
 n_classes: 10
+classes: ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 n_channels: 3
 img_size: 32
 data_root: /home/rizawa/Codes/recruitement/assignment/data
