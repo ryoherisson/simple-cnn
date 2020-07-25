@@ -17,6 +17,7 @@ from utils.dataset import DataTransforms, Dataset
 from models.cnn_classifier import CNNClassifier
 from models.metrics.metrics import Metrics
 from models.networks.network import SimpleCNN
+from utils.plot_cmx import plot_confusion_matrix
 
 def parser():
     parser = argparse.ArgumentParser()
@@ -109,8 +110,15 @@ def main():
 
 
     ### Metrics ###
-    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, log_dir=log_dir)
+    metrics_dir = log_dir / 'metrics'
+    metrics_dir.mkdir(exist_ok=True)
+    metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, 
+                      metrics_dir=metrics_dir, plot_confusion_matrix=plot_confusion_matrix)
 
+
+    ### setup ckpt outdir ###
+    ckpt_dir = log_dir / 'ckpt'
+    ckpt_dir.mkdir(exist_ok=True)
 
     ### Train or Test ###
     kwargs = {
@@ -122,7 +130,7 @@ def main():
         'metrics': metrics,
         'n_classses': configs['n_classes'],
         'save_ckpt_interval': configs['save_ckpt_interval'],
-        'log_dir': log_dir,
+        'ckpt_dir': ckpt_dir,
     }
 
     cnn_classifier = CNNClassifier(**kwargs)
