@@ -58,8 +58,8 @@ def main():
     print('model summary: ')
     summary(network, input_size=(configs['n_channels'], configs['img_size'], configs['img_size']))
 
-    # if configs["n_gpus"] > 1:
-    #     network = nn.DataParallel(network)
+    if configs["n_gpus"] > 1:
+        network = nn.DataParallel(network)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(network.parameters(), lr=configs['lr'])

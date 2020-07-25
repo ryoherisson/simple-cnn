@@ -12,5 +12,5 @@ batch_size: 64
 n_epochs: 50
 decay: 1e-4
 log_dir: ./logs/
-n_gpus: 4
+n_gpus: 1
 
