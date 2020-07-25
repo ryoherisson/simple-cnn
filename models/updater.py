@@ -20,12 +20,12 @@ class Updater(object):
         self.ckpt_dir = self.log_dir / 'ckpt'
         self.ckpt_dir.mkdir(exist_ok=True)
 
-    def train(self, n_epochs):
+    def train(self, n_epochs, start_epoch=0):
 
         best_accuracy = 0
 
-        for epoch in range(n_epochs):
-            print(f'----------- Epoch: {epoch} -----------')
+        for epoch in range(start_epoch, n_epochs):
+            print(f'---------------------- Epoch: {epoch} ----------------------')
             print('# train:')
             self.network.train()
 
@@ -146,6 +146,7 @@ class Updater(object):
 
         torch.save({
             'epoch': epoch,
+            'network': network,
             'model_state_dict': network.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'loss': loss,
