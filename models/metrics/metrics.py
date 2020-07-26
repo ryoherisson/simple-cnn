@@ -1,10 +1,14 @@
 from pathlib import Path
 import csv
+from logging import getLogger
 
 import numpy as np
 import pandas as pd
 
 import torch
+
+logger = getLogger(__name__)
+pd.set_option('display.unicode.east_asian_width', True)
 
 class Metrics(object):
     def __init__(self, n_classes, classes, writer, metrics_dir, plot_confusion_matrix, epsilon=1e-12):
@@ -51,23 +55,27 @@ class Metrics(object):
 
     def logging(self, epoch, mode):
 
+        logger.info(f'{mode} metrics...')
+        logger.info(f'loss:         {self.loss}')
+        logger.info(f'accuracy:     {self.accuracy}')
+
         df = pd.DataFrame(index=self.classes)
         df['precision'] = self.precision.tolist()
         df['recall'] = self.recall.tolist()
         df['f1score'] = self.f1score.tolist()
 
-        print(f'metrics values per classes: \n{df}\n')
+        logger.info(f'\nmetrics values per classes: \n{df}\n')
 
-        print(f'precision: {self.precision.mean()}')
-        print(f'recall: {self.recall.mean()}')
-        print(f'mean f1score: {self.f1score.mean()}\n') # micro mean f1score
+        logger.info(f'precision:    {self.precision.mean()}')
+        logger.info(f'recall:       {self.recall.mean()}')
+        logger.info(f'mean_f1score: {self.f1score.mean()}\n') # micro mean f1score
 
         # Change mode from 'test' to 'val' to change the display order from left to right to train and test.
         mode = 'val' if mode == 'test' else mode
 
         self.writer.add_scalar(f'loss/{mode}', self.loss, epoch)
         self.writer.add_scalar(f'accuracy/{mode}', self.accuracy, epoch)
-        self.writer.add_scalar(f'mean f1score/{mode}', self.f1score.mean(), epoch)
+        self.writer.add_scalar(f'mean_f1score/{mode}', self.f1score.mean(), epoch)
         self.writer.add_scalar(f'precision/{mode}', self.precision.mean(), epoch)
         self.writer.add_scalar(f'recall/{mode}', self.recall.mean(), epoch)
 
