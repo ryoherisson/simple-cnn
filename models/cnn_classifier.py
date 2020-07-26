@@ -67,6 +67,7 @@ class CNNClassifier(object):
                         loss="{:.4f}".format(train_loss / n_total),
                         acc="{:.4f}".format(accuracy)))
 
+            # calc loss, accuracy, precision, reacall, f1score and save as csv
             self.metrics.calc_metrics(epoch, mode='train')
             self.metrics.init_cmx()
 
@@ -125,6 +126,8 @@ class CNNClassifier(object):
                             loss="{:.4f}".format(test_loss / n_total),
                             acc="{:.4f}".format(accuracy)))
 
+            # calc loss, accuracy, precision, reacall, f1score and save as csv
+            # if inference is True, save confusion matrix as png
             self.metrics.calc_metrics(epoch, mode='test', inference=inference)
             self.metrics.init_cmx()
 
