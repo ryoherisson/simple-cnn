@@ -20,7 +20,7 @@ class Metrics(object):
         self.writer = writer
         self.metrics_dir = metrics_dir
 
-        # function
+        # function usage: self.plot_confusion_matrix()
         self.plot_confusion_matrix = plot_confusion_matrix
 
     def update(self, preds, targets, loss, accuracy):
@@ -54,7 +54,6 @@ class Metrics(object):
         self.__cmx = torch.zeros(self.n_classes, self.n_classes, dtype=torch.int64)
 
     def logging(self, epoch, mode):
-
         logger.info(f'{mode} metrics...')
         logger.info(f'loss:         {self.loss}')
         logger.info(f'accuracy:     {self.accuracy}')
@@ -80,7 +79,6 @@ class Metrics(object):
         self.writer.add_scalar(f'recall/{mode}', self.recall.mean(), epoch)
 
     def save_csv(self, epoch, mode):
-
         csv_path = self.metrics_dir / f'{mode}_metrics.csv'
 
         if not csv_path.exists():
