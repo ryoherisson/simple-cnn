@@ -1,10 +1,12 @@
 from tqdm import tqdm
 
+from logging import getLogger
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
+logger = getLogger(__name__)
 
 class CNNClassifier(object):
     def __init__(self, **kwargs):
@@ -22,8 +24,8 @@ class CNNClassifier(object):
         best_accuracy = 0
 
         for epoch in range(start_epoch, n_epochs):
-            print(f'---------------------- Epoch: {epoch} ----------------------')
-            print('# train:')
+            logger.info(f'\n\n==================== Epoch: {epoch} ====================')
+            logger.info('### train:')
             self.network.train()
 
             train_loss = 0
@@ -65,20 +67,19 @@ class CNNClassifier(object):
                         loss="{:.4f}".format(train_loss / n_total),
                         acc="{:.4f}".format(accuracy)))
 
-            print(f'train loss: {train_loss / n_total}')
-            print(f'train accuracy: {accuracy}')
-
             self.metrics.calc_metrics(epoch, mode='train')
             self.metrics.init_cmx()
 
             if epoch % self.save_ckpt_interval == 0:
+                logger.info('saving checkpoint...')
                 self._save_ckpt(epoch, train_loss/(idx+1))
 
             ### test
-            print('# test:')
+            logger.info('### test:')
             test_accuracy = self.test(epoch)
 
             if test_accuracy > best_accuracy:
+                logger.info(f'saving best checkpoint (epoch: {epoch})...')
                 best_accuracy = test_accuracy
                 self._save_ckpt(epoch, train_loss/(idx+1), mode='best')
 
@@ -123,9 +124,6 @@ class CNNClassifier(object):
                             epoch="{:>10}".format(epoch),
                             loss="{:.4f}".format(test_loss / n_total),
                             acc="{:.4f}".format(accuracy)))
-
-            print(f'test loss: {test_loss / n_total}')
-            print(f'test accuracy: {accuracy}\n')
 
             self.metrics.calc_metrics(epoch, mode='test')
             self.metrics.init_cmx()

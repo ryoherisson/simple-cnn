@@ -3,6 +3,8 @@ from pathlib import Path
 import yaml
 from  datetime import datetime
 
+from logging import getLogger
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -14,10 +16,13 @@ from torchsummary import summary
 
 from utils.dataset import make_datapath_list
 from utils.dataset import DataTransforms, Dataset
+from utils.plot_cmx import plot_confusion_matrix
+from utils.setup_logger import setup_logger
 from models.cnn_classifier import CNNClassifier
 from models.metrics.metrics import Metrics
 from models.networks.network import SimpleCNN
-from utils.plot_cmx import plot_confusion_matrix
+
+logger = getLogger(__name__)
 
 def parser():
     parser = argparse.ArgumentParser()
@@ -40,22 +45,26 @@ def main():
     log_dir = Path(configs['log_dir']) / now
     log_dir.mkdir(exist_ok=True, parents=True)
 
+    logfile = log_dir / 'logfile.log'
+    setup_logger(logfile=logfile)
+
     summary_dir = log_dir / 'tensorboard'
     summary_dir.mkdir(exist_ok=True)
     writer = SummaryWriter(str(summary_dir))
 
-
     ### setup GPU or CPU ###
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
-        print('CUDA is available! using GPU...')
+        logger.info('CUDA is available! using GPU...\n')
         device = torch.device('cuda')
     else:
-        print('using CPU...')
+        logger.info('using CPU...\n')
         device = torch.device('cpu')
 
 
     ### Dataset ###
-    print('preparing dataset...')
+    logger.info('preparing dataset...')
+    dataset_name = configs['dataset']
+    logger.info(f'==> dataset: {dataset_name}\n')
 
     if configs['dataset'] == 'cifar10':
         transform = transforms.Compose([
@@ -72,14 +81,15 @@ def main():
         train_dataset = Dataset(train_img_list, train_lbl_list, transform=train_transform)
         test_dataset = Dataset(test_img_list, test_lbl_list, transform=test_transform)
     else:
-        raise ValueError('That dataset is not supported')
+        logger.debug('dataset is not supported')
+        raise ValueError('dataset is not supported')
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=configs['batch_size'], shuffle=True, num_workers=8)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
 
 
     ### Network ###
-    print('preparing network...')
+    logger.info('preparing network...\n')
 
     network = SimpleCNN(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
 
@@ -89,9 +99,10 @@ def main():
 
     if configs['resume']:
         # Load checkpoint
-        print('==> Resuming from checkpoint...')
+        logger.info('==> Resuming from checkpoint...\n')
         if not Path(configs['resume']).exists():
-            assert 'No checkpoint found !'
+            logger.info('No checkpoint found !')
+            raise ValueError('No checkpoint found !')
 
         ckpt = torch.load(configs['resume'])
         network.load_state_dict(ckpt['model_state_dict'])
@@ -99,10 +110,10 @@ def main():
         start_epoch = ckpt['epoch']
         loss = ckpt['loss']
     else:
-        print('==> Building model...')
+        logger.info('==> Building model...\n')
         start_epoch = 0
 
-    print('model summary: ')
+    logger.info('model summary: ')
     summary(network, input_size=(configs['n_channels'], configs['img_size'], configs['img_size']))
 
     if configs["n_gpus"] > 1:
@@ -136,10 +147,12 @@ def main():
     cnn_classifier = CNNClassifier(**kwargs)
 
     if configs['inference']:
-        print('mode: inference\n')
+        if not configs['resume']:
+            logger.info('No checkpoint found for inference!')
+        logger.info('mode: inference\n')
         cnn_classifier.test(epoch=start_epoch)
     else:
-        print('mode: train\n')
+        logger.info('mode: train\n')
         cnn_classifier.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
 
 if __name__ == "__main__":

@@ -7,11 +7,9 @@ import matplotlib.pyplot as plt
 def plot_confusion_matrix(cmx, classes, metrics_dir, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     if normalize:
         cmx = cmx.astype('float') / cmx.sum(axis=1)[:, np.newaxis]
-        print('Normalized confusion matrix')
+        print('Normalized confusion matrix\n')
     else:
-        print('Confusion matrix, without normalization')
-
-    print(cmx, '\n')
+        print('Confusion matrix, without normalization\n')
 
     plt.imshow(cmx, interpolation='nearest', cmap=cmap)
     plt.title(title)
