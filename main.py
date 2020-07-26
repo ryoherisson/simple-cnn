@@ -86,7 +86,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
 
     ### Network ###
-    logger.info('preparing network...\n')
+    logger.info('preparing network...')
 
     network = SimpleCNN(in_channels=configs['n_channels'], n_classes=configs['n_classes'])
 
