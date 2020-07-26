@@ -135,9 +135,9 @@ def main():
 
     cnn_classifier = CNNClassifier(**kwargs)
 
-    if configs['test']:
-        print('mode: test\n')
-        cnn_classifier.test()
+    if configs['inference']:
+        print('mode: inference\n')
+        cnn_classifier.test(epoch=start_epoch)
     else:
         print('mode: train\n')
         cnn_classifier.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
