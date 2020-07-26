@@ -83,7 +83,7 @@ class CNNClassifier(object):
                 best_accuracy = test_accuracy
                 self._save_ckpt(epoch, train_loss/(idx+1), mode='best')
 
-    def test(self, epoch):
+    def test(self, epoch, inference=False):
         self.network.eval()
     
         test_loss = 0
@@ -125,7 +125,7 @@ class CNNClassifier(object):
                             loss="{:.4f}".format(test_loss / n_total),
                             acc="{:.4f}".format(accuracy)))
 
-            self.metrics.calc_metrics(epoch, mode='test')
+            self.metrics.calc_metrics(epoch, mode='test', inference=inference)
             self.metrics.init_cmx()
 
         return accuracy

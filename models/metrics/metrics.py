@@ -33,7 +33,7 @@ class Metrics(object):
         self.loss = loss
         self.accuracy = accuracy
 
-    def calc_metrics(self, epoch, mode='train'):
+    def calc_metrics(self, epoch, mode='train', inference=False):
         tp = torch.diag(self.__cmx).to(torch.float32)
         fp = (self.__cmx.sum(axis=1) - torch.diag(self.__cmx)).to(torch.float32)
         fn = (self.__cmx.sum(axis=0) - torch.diag(self.__cmx)).to(torch.float32)
@@ -45,7 +45,8 @@ class Metrics(object):
         self.logging(epoch, mode)
         self.save_csv(epoch, mode)
 
-        if mode == 'test':
+        # if inference is True, plot confusion matrix
+        if inference:
             self.plot_confusion_matrix(self.__cmx.clone().numpy(), self.classes, self.metrics_dir)
 
     def init_cmx(self):
