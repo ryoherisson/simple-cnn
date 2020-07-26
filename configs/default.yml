@@ -30,6 +30,3 @@ log_dir: ./logs/
 # path of checkpoint or None
 # resume: 
 resume: /home/rizawa/Codes/recruitement/assignment/SimpleCNN/logs/2020-07-26T00:19:34.918002/ckpt/best_acc_ckpt.pth
-
-### general (train mode or inference mode)
-inference: False

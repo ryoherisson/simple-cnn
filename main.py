@@ -28,6 +28,7 @@ logger = getLogger(__name__)
 def parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configfile', type=str, default='./configs/default.yml')
+    parser.add_argument("--inference", action="store_true", default=False)
     args = parser.parse_args()
     return args
 
@@ -134,11 +135,11 @@ def main():
 
     cnn_classifier = CNNClassifier(**kwargs)
 
-    if configs['inference']:
+    if args.inference:
         if not configs['resume']:
             logger.info('No checkpoint found for inference!')
         logger.info('mode: inference\n')
-        cnn_classifier.test(epoch=start_epoch)
+        cnn_classifier.test(epoch=start_epoch, inference=True)
     else:
         logger.info('mode: train\n')
         cnn_classifier.train(n_epochs=configs['n_epochs'], start_epoch=start_epoch)
