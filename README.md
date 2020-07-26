@@ -1,6 +1,6 @@
 # SimpleCNN with pytorch
-This is a pytorch implementation of the CNN Classifier.
-Cifar10 is available for the dataset by default. 
+This is a pytorch implementation of the CNN Classifier.  
+Cifar10 is available for the dataset by default.  
 You can also use your own dataset.
 
 ## Requirements
