@@ -14,6 +14,7 @@ import torchvision.datasets as datasets
 from tensorboardX import SummaryWriter
 from torchsummary import summary
 
+from utils.path_process import Paths
 from utils.dataset import make_datapath_list
 from utils.dataset import DataTransforms, Dataset
 from utils.plot_cmx import plot_confusion_matrix
@@ -39,18 +40,15 @@ def main():
     with open(configfile) as f:
         configs = yaml.load(f)
 
-
-    ### setup logs and summary writer ###
+    ## path process (path definition, make directories)
     now = datetime.now().isoformat()
     log_dir = Path(configs['log_dir']) / now
-    log_dir.mkdir(exist_ok=True, parents=True)
+    paths = Paths(log_dir=log_dir)
 
-    logfile = log_dir / 'logfile.log'
-    setup_logger(logfile=logfile)
+    ### setup logs and summary writer ###
+    setup_logger(logfile=paths.logfile)
 
-    summary_dir = log_dir / 'tensorboard'
-    summary_dir.mkdir(exist_ok=True)
-    writer = SummaryWriter(str(summary_dir))
+    writer = SummaryWriter(str(paths.summary_dir))
 
     ### setup GPU or CPU ###
     if configs['n_gpus'] > 0 and torch.cuda.is_available():
@@ -59,7 +57,6 @@ def main():
     else:
         logger.info('using CPU...\n')
         device = torch.device('cpu')
-
 
     ### Dataset ###
     logger.info('preparing dataset...')
@@ -86,7 +83,6 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=configs['batch_size'], shuffle=True, num_workers=8)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=configs['batch_size'], shuffle=False, num_workers=8)
-
 
     ### Network ###
     logger.info('preparing network...\n')
@@ -119,17 +115,9 @@ def main():
     if configs["n_gpus"] > 1:
         network = nn.DataParallel(network)
 
-
     ### Metrics ###
-    metrics_dir = log_dir / 'metrics'
-    metrics_dir.mkdir(exist_ok=True)
     metrics = Metrics(n_classes=configs['n_classes'], classes=configs['classes'], writer=writer, 
-                      metrics_dir=metrics_dir, plot_confusion_matrix=plot_confusion_matrix)
-
-
-    ### setup ckpt outdir ###
-    ckpt_dir = log_dir / 'ckpt'
-    ckpt_dir.mkdir(exist_ok=True)
+                      metrics_dir=paths.metrics_dir, plot_confusion_matrix=plot_confusion_matrix)
 
     ### Train or Test ###
     kwargs = {
@@ -141,7 +129,7 @@ def main():
         'metrics': metrics,
         'n_classses': configs['n_classes'],
         'save_ckpt_interval': configs['save_ckpt_interval'],
-        'ckpt_dir': ckpt_dir,
+        'ckpt_dir': paths.ckpt_dir,
     }
 
     cnn_classifier = CNNClassifier(**kwargs)
