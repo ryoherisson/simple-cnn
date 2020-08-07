@@ -14,11 +14,11 @@ class SimpleCNN(nn.Module):
 
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.dropout1 = torch.nn.Dropout2d(p=0.3)
+        self.dropout1 = nn.Dropout2d(p=0.3)
         self.relu = nn.ReLU(inplace=True)
 
         self.fc1 = nn.Linear(in_features=channels*4*13*13, out_features=512)
-        self.dropout2 = torch.nn.Dropout(p=0.3)
+        self.dropout2 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(in_features=512, out_features=64)
         self.fc3 = nn.Linear(in_features=64, out_features=n_classes)
 

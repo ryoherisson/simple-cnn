@@ -39,7 +39,7 @@ def main():
     configfile = args.configfile
 
     with open(configfile) as f:
-        configs = yaml.load(f)
+        configs = yaml.safe_load(f)
 
     ## path process (path definition, make directories)
     now = datetime.now().isoformat()
